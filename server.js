@@ -52,6 +52,7 @@ function validateFields({ fname, email, message }) {
 }
 
 // CONTACT ROUTE
+app.get("/ping", (req, res) => res.send("ok"));
 app.post("/api/contact", async (req, res) => {
   const { fname, lname, email, subject, message, website } = req.body;
 

@@ -1682,6 +1682,10 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     });
   });
 }
+// Ping server every 5 minutes to prevent cold start
+setInterval(() => {
+  fetch('https://portfolio-frax.onrender.com/ping').catch(() => {});
+}, 5 * 60 * 1000);
 </script>
 
 </body>
