@@ -1,5 +1,4 @@
 import express from "express";
-import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -21,14 +20,8 @@ app.use(express.static(__dirname));
 // Serve portfolio.html at root
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "portfolio.html")));
 
-// NODEMAILER SETUP (Gmail)
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+// Health check
+app.get("/ping", (req, res) => res.send("ok"));
 
 // HELPERS
 function readSubmissions() {
@@ -52,7 +45,6 @@ function validateFields({ fname, email, message }) {
 }
 
 // CONTACT ROUTE
-app.get("/ping", (req, res) => res.send("ok"));
 app.post("/api/contact", async (req, res) => {
   const { fname, lname, email, subject, message, website } = req.body;
 
@@ -64,32 +56,46 @@ app.post("/api/contact", async (req, res) => {
   const fullName = `${fname} ${lname || ""}`.trim();
   const submittedAt = new Date().toISOString();
 
+  // Save to local JSON file
   try {
     saveSubmission({ fullName, email, subject: subject || "", message, submittedAt });
   } catch (err) {
     console.error("Failed to save submission:", err);
   }
 
+  // Send email via Resend API (works on Render free tier)
   try {
-    await transporter.sendMail({
-      from: `"Portfolio Contact" <${process.env.GMAIL_USER}>`,
-      to: process.env.GMAIL_USER,
-      replyTo: email,
-      subject: subject ? `[Contact] ${subject}` : `[Contact] New message from ${fullName}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px;border:1px solid #e5e7eb;border-radius:8px">
-          <h2 style="margin-top:0;color:#111">New Contact Form Submission</h2>
-          <table style="width:100%;border-collapse:collapse">
-            <tr><td style="padding:8px 0;color:#6b7280;width:100px">Name</td><td style="padding:8px 0"><strong>${fullName}</strong></td></tr>
-            <tr><td style="padding:8px 0;color:#6b7280">Email</td><td style="padding:8px 0"><a href="mailto:${email}">${email}</a></td></tr>
-            <tr><td style="padding:8px 0;color:#6b7280">Subject</td><td style="padding:8px 0">${subject || "-"}</td></tr>
-            <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Message</td><td style="padding:8px 0;white-space:pre-wrap">${message}</td></tr>
-            <tr><td style="padding:8px 0;color:#6b7280">Sent at</td><td style="padding:8px 0">${new Date(submittedAt).toLocaleString()}</td></tr>
-          </table>
-          <p style="margin-bottom:0;color:#9ca3af;font-size:12px">Reply to this email to respond directly to ${fullName}.</p>
-        </div>
-      `,
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Portfolio Contact <onboarding@resend.dev>",
+        to: process.env.GMAIL_USER,
+        reply_to: email,
+        subject: subject ? `[Contact] ${subject}` : `[Contact] New message from ${fullName}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px;border:1px solid #e5e7eb;border-radius:8px">
+            <h2 style="margin-top:0;color:#111">New Contact Form Submission</h2>
+            <table style="width:100%;border-collapse:collapse">
+              <tr><td style="padding:8px 0;color:#6b7280;width:100px">Name</td><td style="padding:8px 0"><strong>${fullName}</strong></td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280">Email</td><td style="padding:8px 0"><a href="mailto:${email}">${email}</a></td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280">Subject</td><td style="padding:8px 0">${subject || "-"}</td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Message</td><td style="padding:8px 0;white-space:pre-wrap">${message}</td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280">Sent at</td><td style="padding:8px 0">${new Date(submittedAt).toLocaleString()}</td></tr>
+            </table>
+            <p style="margin-bottom:0;color:#9ca3af;font-size:12px">Reply to this email to respond directly to ${fullName}.</p>
+          </div>
+        `,
+      }),
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(JSON.stringify(err));
+    }
   } catch (err) {
     console.error("Failed to send email:", err);
     return res.status(500).json({ ok: false, errors: ["Email delivery failed. Your message was saved locally."] });
