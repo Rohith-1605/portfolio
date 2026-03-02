@@ -72,7 +72,7 @@ app.post("/api/contact", async (req, res) => {
         "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Portfolio Contact <bavikadirohithgoud@gmail.com>",
+        from: "Portfolio Contact <onboarding@resend.dev>",
         to: process.env.GMAIL_USER,
         reply_to: email,
         subject: subject ? `[Contact] ${subject}` : `[Contact] New message from ${fullName}`,
