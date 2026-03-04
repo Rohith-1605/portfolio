@@ -764,6 +764,115 @@ ul { list-style: none; }
 .form-submit:hover { background: var(--accent); box-shadow: var(--shadow-accent); }
 .form-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ══ EXIT POPUP ══ */
+.exit-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(15, 18, 8, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.exit-overlay.show { opacity: 1; pointer-events: all; }
+.exit-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 420px; width: 100%;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(28px) scale(0.97);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease;
+  opacity: 0;
+}
+.exit-overlay.show .exit-card { transform: translateY(0) scale(1); opacity: 1; }
+.exit-close {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--fg-3); font-size: 0.8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.exit-close:hover { background: var(--bg-3); color: var(--fg); }
+.exit-icon {
+  width: 52px; height: 52px; border-radius: 16px;
+  background: var(--accent-muted2); border: 1px solid var(--accent-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; margin-bottom: 1.2rem;
+}
+.exit-label {
+  font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.5rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.exit-label::before { content: ''; width: 18px; height: 1.5px; background: var(--accent); }
+.exit-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem; line-height: 1.15;
+  letter-spacing: -0.02em; color: var(--fg); margin-bottom: 0.7rem;
+}
+.exit-title em { font-style: italic; color: var(--accent); }
+.exit-subtitle {
+  font-size: 0.9rem; color: var(--fg-2);
+  line-height: 1.65; font-weight: 300; margin-bottom: 1.5rem;
+}
+.exit-stars { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; }
+.star {
+  font-size: 1.4rem; cursor: pointer;
+  filter: grayscale(1) opacity(0.4);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.star:hover, .star.active { filter: grayscale(0) opacity(1); transform: scale(1.2); }
+.exit-textarea {
+  width: 100%; padding: 0.85rem 1rem;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 12px; font-family: var(--font-body);
+  font-size: 0.875rem; color: var(--fg);
+  resize: none; height: 100px; outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  line-height: 1.6;
+}
+.exit-textarea::placeholder { color: var(--fg-3); }
+.exit-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-muted);
+}
+.exit-actions { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
+.exit-btn-skip {
+  flex: 1; padding: 0.75rem; border-radius: 100px;
+  background: var(--bg-2); border: 1.5px solid var(--border);
+  color: var(--fg-2); font-family: var(--font-body);
+  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.exit-btn-skip:hover { background: var(--bg-3); color: var(--fg); }
+.exit-btn-send {
+  flex: 2; padding: 0.75rem; border-radius: 100px;
+  background: var(--fg); color: var(--bg);
+  border: none; font-family: var(--font-body);
+  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+.exit-btn-send:hover { background: var(--accent); box-shadow: var(--shadow-accent); }
+.exit-btn-send svg { width: 14px; height: 14px; }
+.exit-thanks { display: none; text-align: center; padding: 1.5rem 0 0.5rem; }
+.exit-thanks-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent-muted2); border: 1px solid var(--accent-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; margin: 0 auto 1rem;
+}
+.exit-thanks h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem; color: var(--fg); margin-bottom: 0.4rem;
+}
+.exit-thanks p { font-size: 0.875rem; color: var(--fg-2); font-weight: 300; }
+
 /* Success toast */
 .toast {
   position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
@@ -1464,6 +1573,43 @@ footer {
     </div>
   </div>
 </footer>
+<!-- EXIT FEEDBACK POPUP -->
+<div class="exit-overlay" id="exitOverlay">
+  <div class="exit-card">
+    <button class="exit-close" id="exitClose">✕</button>
+
+    <div id="exitDefault">
+      <div class="exit-icon">💬</div>
+      <div class="exit-label">Quick question</div>
+      <h2 class="exit-title">Before you <em>leave</em>…</h2>
+      <p class="exit-subtitle">Got feedback or suggestions to improve my portfolio? Even one line helps a lot!</p>
+
+      <div class="exit-stars" id="exitStars">
+        <span class="star" data-val="1">★</span>
+        <span class="star" data-val="2">★</span>
+        <span class="star" data-val="3">★</span>
+        <span class="star" data-val="4">★</span>
+        <span class="star" data-val="5">★</span>
+      </div>
+
+      <textarea class="exit-textarea" id="exitFeedback" placeholder="What could be better? Any suggestions…"></textarea>
+
+      <div class="exit-actions">
+        <button class="exit-btn-skip" id="exitSkip">Skip</button>
+        <button class="exit-btn-send" id="exitSend">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          Send Feedback
+        </button>
+      </div>
+    </div>
+
+    <div class="exit-thanks" id="exitThanks">
+      <div class="exit-thanks-icon">✓</div>
+      <h3>Thank you!</h3>
+      <p>Your feedback means a lot. I'll use it to make this portfolio better.</p>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
@@ -1664,6 +1810,86 @@ form.addEventListener('submit', async (e) => {
     if (id === 'email') validateField(this, 'emailErr', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
     else validateField(this, id + 'Err', v => v.trim().length >= (id === 'message' ? 10 : 2));
   });
+});
+
+/* ══════════════ EXIT FEEDBACK POPUP ══════════════ */
+let exitPopupShown = false;
+let selectedRating = 0;
+
+function showExitPopup() {
+  if (exitPopupShown) return;
+  exitPopupShown = true;
+  document.getElementById('exitOverlay').classList.add('show');
+}
+
+function closeExitPopup() {
+  document.getElementById('exitOverlay').classList.remove('show');
+  setTimeout(() => {
+    selectedRating = 0;
+    document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+    document.getElementById('exitFeedback').value = '';
+    document.getElementById('exitDefault').style.display = 'block';
+    document.getElementById('exitThanks').style.display = 'none';
+  }, 400);
+}
+
+// Star rating
+document.querySelectorAll('.star').forEach(star => {
+  star.addEventListener('mouseover', () => {
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', s.dataset.val <= star.dataset.val);
+    });
+  });
+  star.addEventListener('mouseout', () => {
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', s.dataset.val <= selectedRating);
+    });
+  });
+  star.addEventListener('click', () => {
+    selectedRating = star.dataset.val;
+  });
+});
+
+// Trigger on mouse leaving top of page (desktop)
+document.addEventListener('mouseleave', (e) => {
+  if (e.clientY <= 0) showExitPopup();
+});
+
+// Trigger on Android/mobile back button
+window.addEventListener('popstate', () => showExitPopup());
+history.pushState(null, '', window.location.href);
+
+// Close actions
+document.getElementById('exitClose').addEventListener('click', closeExitPopup);
+document.getElementById('exitSkip').addEventListener('click', closeExitPopup);
+document.getElementById('exitOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('exitOverlay')) closeExitPopup();
+});
+
+// Send feedback
+document.getElementById('exitSend').addEventListener('click', async () => {
+  const feedback = document.getElementById('exitFeedback').value.trim();
+  const rating = selectedRating ? `Rating: ${selectedRating}/5 ★\n\n` : '';
+  if (!feedback && !selectedRating) return;
+
+  try {
+    await fetch('https://portfolio-frax.onrender.com/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fname: 'Anonymous',
+        email: 'feedback@visitor.com',
+        subject: 'Portfolio Feedback',
+        message: rating + (feedback || 'No written feedback'),
+      }),
+    });
+  } catch (err) {
+    console.error('Feedback error:', err);
+  }
+
+  document.getElementById('exitDefault').style.display = 'none';
+  document.getElementById('exitThanks').style.display = 'block';
+  setTimeout(closeExitPopup, 2500);
 });
 
 /* ══════════════ CARD 3D TILT ══════════════ */
